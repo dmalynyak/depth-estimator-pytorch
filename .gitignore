@@ -1,0 +1,9 @@
+.venv/
+.idea/
+__pycache__/
+.pytest_cache/
+.DS_Store
+*.pyc
+excess/
+data/
+conftest.py
