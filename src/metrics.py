@@ -48,13 +48,18 @@ def get_valid_mask(gt):
 # must be upscaled
 def get_metrics(pred, gt):
 
-    assert pred.shape[-1] in (320, 640), f"width of tensor must be 320 or 640, got {pred.dim[-1].len()}"
+    assert pred.shape[-1] in (320, 640), f"width of tensor must be 320 or 640, got {pred.shape[-1]}"
 
-    if pred.dim[-1].len() == 320:
+    if pred.shape[-1] == 320:
         pred = src.utils.upsample_x2(pred)
+        print(f"shape after upscaling {pred.shape}")
+    if gt.shape[-1] == 320:
+        gt = src.utils.upsample_x2(gt)
+        print(f"shape after upscaling {pred.shape}")
 
     pred = pred.clamp(1e-3, 10.0)
     valid_mask = get_valid_mask(gt)
+    print(f"shape gt {gt.shape}")
 
     return {
         "parameters": "Eigen crop, gt range(0,10], natural log, prediction upsample, median scsaling = False",
@@ -66,3 +71,32 @@ def get_metrics(pred, gt):
         "d3": get_del3(pred, gt, valid_mask)
         }
 
+class AverageMeter:
+    def __init__(self):
+        self.sum = 0.0
+        self.count = 0
+
+    def update(self, val, n):
+        self.sum += val * n
+        self.count += n
+
+    @property
+    def avg(self):
+        return self.sum / self.count if self.count > 0 else 0.0
+
+
+# give final eval metrics 
+# for rgb, gt in test_loader:
+
+#     pred = model(rgb)
+#     batch_metrics = src.metrics.get_metrics(pred, gt)
+    
+#     batch_size = gt.size(0) 
+
+#     for key, value in batch_metrics.items():
+#         if isinstance(value, torch.Tensor):
+#             meters[key].update(value.item(), batch_size)
+
+# print(f"Parameters: {batch_metrics['parameters']}")
+# for key, meter in meters.items():
+#     print(f"{key}: {meter.avg:.4f}")
