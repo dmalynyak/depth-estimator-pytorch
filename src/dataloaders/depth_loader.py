@@ -10,7 +10,7 @@ class DepthNYUDataset(torch.utils.data.Dataset):
 
     def __init__(self, data_dir, split):
 
-        assert split == "train" or "eval", f"split param must be 'train' or 'eval', got {split}"
+        assert split in ("train", "eval"), f"split param must be 'train' or 'eval', got {split}"
 
         self.data_dir = Path(data_dir)
         self.samples = []
