@@ -1,8 +1,8 @@
-torch==2.13.0
-torchvision==0.28.0
-numpy==2.5.2
-matplotlib==3.11.1
-Pillow==12.3.0
-scipy==1.18.1
-h5py==3.16.0
-pytest==9.1.1
+torch
+torchvision
+numpy<2.5.0
+matplotlib
+Pillow
+scipy
+h5py
+pytest
