@@ -4,35 +4,35 @@ import src.utils
 def get_RMSE(pred, gt, valid_mask):
     pred = pred[valid_mask]
     gt = gt[valid_mask]
-    return torch.sqrt(torch.mean( (pred - gt) ** 2) )
+    return torch.sqrt(torch.mean( (pred - gt) ** 2) ).item()
 
 def get_RMSE_log(pred, gt, valid_mask):
     pred = pred[valid_mask]
     gt = gt[valid_mask]
-    return torch.sqrt(torch.mean( (torch.log(pred) - torch.log(gt))** 2) )
+    return torch.sqrt(torch.mean( (torch.log(pred) - torch.log(gt))** 2) ).item()
 
 def get_AbsRel(pred, gt, valid_mask):
     pred = pred[valid_mask]
     gt = gt[valid_mask]
-    return torch.mean(torch.abs(pred - gt) / gt)
+    return torch.mean(torch.abs(pred - gt) / gt).item()
 
 def get_del1(pred, gt, valid_mask):
     pred = pred[valid_mask]
     gt = gt[valid_mask]
     mask = (torch.max(pred/gt, gt/pred) < 1.25).float()
-    return mask.mean()
+    return mask.mean().item()
 
 def get_del2(pred, gt, valid_mask):
     pred = pred[valid_mask]
     gt = gt[valid_mask]
     mask = (torch.max(pred/gt, gt/pred) < 1.25**2).float()
-    return mask.mean()
+    return mask.mean().item()
 
 def get_del3(pred, gt, valid_mask):
     pred = pred[valid_mask]
     gt = gt[valid_mask]
     mask = (torch.max(pred/gt, gt/pred) < 1.25**3).float()
-    return mask.mean()
+    return mask.mean().item()
 
 # applyies eigen crop, condition 0<gt<=10, condition gt is not Nan/Inf
 def get_valid_mask(gt):
@@ -52,14 +52,14 @@ def get_metrics(pred, gt):
 
     if pred.shape[-1] == 320:
         pred = src.utils.upsample_x2(pred)
-        print(f"shape after upscaling {pred.shape}")
+        # print(f"shape after upscaling {pred.shape}")
     if gt.shape[-1] == 320:
         gt = src.utils.upsample_x2(gt)
-        print(f"shape after upscaling {pred.shape}")
+        # print(f"shape after upscaling {pred.shape}")
 
     pred = pred.clamp(1e-3, 10.0)
     valid_mask = get_valid_mask(gt)
-    print(f"shape gt {gt.shape}")
+    # print(f"shape gt {gt.shape}")
 
     return {
         "parameters": "Eigen crop, gt range(0,10], natural log, prediction upsample, median scsaling = False",
@@ -83,20 +83,3 @@ class AverageMeter:
     @property
     def avg(self):
         return self.sum / self.count if self.count > 0 else 0.0
-
-
-# give final eval metrics 
-# for rgb, gt in test_loader:
-
-#     pred = model(rgb)
-#     batch_metrics = src.metrics.get_metrics(pred, gt)
-    
-#     batch_size = gt.size(0) 
-
-#     for key, value in batch_metrics.items():
-#         if isinstance(value, torch.Tensor):
-#             meters[key].update(value.item(), batch_size)
-
-# print(f"Parameters: {batch_metrics['parameters']}")
-# for key, meter in meters.items():
-#     print(f"{key}: {meter.avg:.4f}")
