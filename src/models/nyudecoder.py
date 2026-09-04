@@ -1,10 +1,9 @@
 # encoder returns feats:
-#  
-# [B, 64, 240, 320]
-#  [B, 64, 120, 160] 
-#  [B, 128, 60, 80] 
-#  [B, 256, 30, 40]
-#  [B, 512, 15, 20]
+#  [B, 64, 120, 160]
+#  [B, 64, 60, 80] 
+#  [B, 128, 30, 40] 
+#  [B, 256, 15, 20]
+#  [B, 512, 8, 10]
 
 import torch.nn as nn
 import torch.nn.functional
@@ -20,9 +19,13 @@ class Block(nn.Module):
     def forward(self, x, passthrow=None):
 
         x = self.activation(self.conv1(x))
-        x = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest')
+        
         if passthrow is not None:
+            x = torch.nn.functional.interpolate(x, size=passthrow.shape[-2:], mode='bilinear', align_corners=False)
+            # print(f"x: {x.shape} passthrow: {passthrow.shape}")
             x = torch.cat([passthrow, x], dim=1)
+        else:
+            x = torch.nn.functional.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
         x = self.activation(self.conv2(x))
         return x
 
@@ -45,22 +48,13 @@ class NYUdecoder(nn.Module):
         
 
     def forward(self, feats):
-        x = feats[4] #  [B, 512, 15, 20]
-        x = self.block1(x, feats[3]) # [B, 256, 30, 40]
-        x = self.block2(x, feats[2]) # [B, 128, 60, 80]
-        x = self.block3(x, feats[1]) # [B, 64, 120, 160]
-        x = self.block4(x, feats[0]) # [B, 32, 240, 320]
-        x = self.block5(x) # [B, 16, 480, 640]
+        x = feats[4] #  [B, 512, 8, 10]
+        # print(f"test {x.shape}")
+        x = self.block1(x, feats[3]) # [B, 256, 15, 20]
+        x = self.block2(x, feats[2]) # [B, 128, 30, 40]
+        x = self.block3(x, feats[1]) # [B, 64, 60, 80]
+        x = self.block4(x, feats[0]) # [B, 32, 120, 160]   
+        x = self.block5(x) # [B, 16, 240, 320]
 
         x = self.head(x)
-        return torch.sigmoid(x)
-
-
-
-
-        # x = nn.Conv2d(in_channels=512, out_channels=256, kernel_size=3, stride=1) #  [B, 256, 15, 20]
-        # x = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest') #  [B, 256, 30, 40]
-        # x = torch.cat([fetures[2], x], dim=1) #  [B, 512, 30, 40]
-        # x = nn.Conv2d(in_channels=512, out_channels=128, kernel_size=3, stride=1) #  [B, 128, 30, 40]
-        # x = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest') #  [B, 128, 60, 80]
-        # x = torch.cat([fetures[1], x], dim=1) #  [B, 256, 60, 80]
+        return torch.sigmoid(x) * 10.0
