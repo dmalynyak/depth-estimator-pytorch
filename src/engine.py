@@ -15,13 +15,13 @@ class Trainer:
 
     def train_epoch(self, epoch):
         self.model.train()
-        self.optimizer.zero_grad()
         loss_value = 0.0
 
         pbar = tqdm(self.train_loader, desc= f"epoch {epoch}", leave=False)
         for i, (rgbs, depths) in enumerate(pbar):
             rgbs = rgbs.to(self.device)
             depths = depths.to(self.device)
+            self.optimizer.zero_grad()
 
             predictions = self.model(rgbs)
             # print(f"pred: {predictions.shape} depth: {depths.shape}")
@@ -52,13 +52,26 @@ class Trainer:
 
         metrics = self.logger.log_val_metrics_devide_batches(metrics_sum, len(self.val_loader))
         metrics.update({"epoch": epoch})
-        self.logger.log_val_metrics_write(metrics)
+       
+
+        return metrics
 
 
 
 
     def fit(self, epochs):
+        abs_rel_best = 1.0
         for epoch in range(epochs):
             
             self.train_epoch(epoch)
-            self.validate(epoch)
+            metrics = self.validate(epoch)
+
+            if metrics["abs_rel"] < abs_rel_best:
+                abs_rel_best = metrics["abs_rel"]
+                self.logger.log_save_weights(metrics)
+                metrics.update({"saved": "True"})
+                self.logger.log_val_metrics_write(metrics)
+            else:
+                metrics.update({"saved": "-"})
+                self.logger.log_val_metrics_write(metrics)
+
