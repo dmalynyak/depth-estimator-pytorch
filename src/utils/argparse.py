@@ -25,7 +25,7 @@ def parse_device(name):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", default="auto", choices=["auto", "cuda", "mps", "cpu"])
-    parser.add_argument("--weights_save_path", help="path to folder where model states will be saved")
-    parser.add_argument("--logs_save_path", help="path to scv file where model validation metrics will be saved")
+    parser.add_argument("--chkpt_path", help="path to folder where model states will be saved")
+    parser.add_argument("--log_path", help="path to scv file where model validation metrics will be saved")
     
     return parser.parse_args()
