@@ -1,6 +1,6 @@
-# from torchinfo import summary          # pip install torchinfo
+# from torchinfo import summary
 # m = resnet18()
-# summary(m, input_size=(1, 3, 480, 640))  # your KITTI input size
+# summary(m, input_size=(1, 3, 480, 640))
 # print(m)
 
 import torch.nn as nn
@@ -17,14 +17,15 @@ class Resnet18Encoder(nn.Module):
         self.layer2 = m.layer2
         self.layer3 = m.layer3
         self.layer4 = m.layer4
-        self.num_ch = [64, 64, 128, 256, 512]
 
     def forward(self, x):
-        feats = [] # for NYU (B, 3, 480, 640) it has [ [B, 64, 240, 320] , 
-        #                                              [B, 64, 120, 160] , 
-        #                                              [B, 128, 60, 80] , 
-        #                                              [B, 256, 30, 40] , 
-        #                                              [B, 512, 15, 20] ]
+        feats = [] 
+        # for NYU input (B, 3, 480, 640) (transforms to /2 during dataloader) it has 
+        # [ [B, 64, 120, 160] , 
+        #   [B, 64, 60, 80] , 
+        #   [B, 128, 30, 40] , 
+        #   [B, 256, 15, 20] , 
+        #   [B, 512, 8, 10] ]
         # last avgpool and fc are discarder
 
         x = self.stem(x)
