@@ -1,7 +1,7 @@
 import torch
 import pytest
 import math
-from src.losses import _get_valid_mask, _get_L1_lin_loss, NYULoss
+from src.losses import _get_valid_mask, _get_L1_lin_loss, _get_grad_loss, NYULoss
 
 @pytest.fixture
 def device():
@@ -52,7 +52,19 @@ def test_loss_cls(device):
     loss = NYULoss(1)
 
     tensor_value = loss(pred, gt, device=device)
+    grad = _get_grad_loss(gt, pred, device=device)
 
-    assert math.isclose(tensor_value.item(), 1.5)
+    assert math.isclose((tensor_value - grad).item(), 1.5)
     assert tensor_value.requires_grad == True
-    
+
+
+def test_grad_loss_is_zero_on_perfect_pred(device):
+    gt = torch.tensor([
+        [1.0, 2.0, 4.0],
+        [1.0, 3.0, 0.0],
+        [float('nan'), 0.5, 1.0]
+    ], device=device)
+    pred = gt.clone().detach().requires_grad_(True)
+
+    loss = _get_grad_loss(gt, pred, device=device)
+    assert math.isclose(loss.item(), 0.0)    
