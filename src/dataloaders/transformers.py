@@ -1,5 +1,6 @@
 import torch, torchvision
 import random
+from torchvision import transforms
 
 # inputs are (rgb, depth) already (3, 480, 680), (1, 480, 680), 
 # torch.float32, rgb[0.0, 1.0] depth[0.0, 10.0]
@@ -16,11 +17,13 @@ class ResizeImageNet:
     def __init__(self, size=(240, 320)):
         self.size = size
 
-    def __call__(self, rgb, depth):
+    def __call__(self, rgb, depth=None):
+        if depth is not None:
+            rgb = torch.nn.functional.interpolate(rgb.unsqueeze(0), size=self.size, mode="bilinear", align_corners=False).squeeze(0)
+            depth = torch.nn.functional.interpolate(depth.unsqueeze(0), size=self.size, mode="nearest").squeeze(0)
+            return rgb, depth
         rgb = torch.nn.functional.interpolate(rgb.unsqueeze(0), size=self.size, mode="bilinear", align_corners=False).squeeze(0)
-        depth = torch.nn.functional.interpolate(depth.unsqueeze(0), size=self.size, mode="nearest").squeeze(0)
-        return rgb, depth
-
+        return rgb
 
 class HorizontalFlip:
 
@@ -50,10 +53,12 @@ class NormalizeImageNet:
     def __init__(self, mean=IMAGENET_MEAN, std=IMAGENET_STD):
         self.normalize = torchvision.transforms.Normalize(mean = mean, std = std)
 
-    def __call__(self, rgb, depth):
+    def __call__(self, rgb, depth=None):
+        if depth is not None:
+            rgb = self.normalize(rgb)
+            return rgb, depth   
         rgb = self.normalize(rgb)
-        return rgb, depth
-
+        return rgb
 
 class Compose:
 
@@ -90,3 +95,10 @@ def built_transform_eval_imagenet():
         NormalizeImageNet()
     ])
 
+def built_one_img_transform(heigh, width):
+
+    return transforms.Compose([
+        transforms.ToTensor(),
+        ResizeImageNet((heigh, width)),
+        NormalizeImageNet(),
+    ])

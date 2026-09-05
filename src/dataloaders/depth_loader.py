@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import torchvision.transforms.functional
 from pathlib import Path
+import cv2
 
 import src.dataloaders
 
@@ -52,3 +53,10 @@ class DepthNYUDataset(torch.utils.data.Dataset):
         rgb_tensor, depth_tensor = self.transform(rgb_tensor, depth_tensor)
             
         return rgb_tensor, depth_tensor # assert ( rgb(3, 480, 680) , depth(1, 480, 680) ), dtype=torch.float32, rgb[0.0, 1.0] depth[0.0, 10.0]
+
+def get_inference_tensor(path, heigh=240, width=320, device='cpu'):
+    img_bgr = cv2.imread(path) # returns brg image 
+    rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB) # BGR (cv2) -> RGB
+    pil = Image.fromarray(rgb) # numpy -> PIL
+    transform = src.dataloaders.built_one_img_transform(heigh, width)
+    return transform(pil).unsqueeze(0).to(device)
