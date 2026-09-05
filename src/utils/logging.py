@@ -12,7 +12,7 @@ class Logger():
             return new_metrics
         
         for key in saved_metrics:
-            if key == "parameters" or "saved":
+            if key in ["parameters", "saved"]:
                 continue
             saved_metrics[key] += new_metrics[key]
 
@@ -24,7 +24,7 @@ class Logger():
         assert metrics is not None, f"got empty metrics dictionary"
 
         for key in metrics:
-            if key is "parameters" or "saved":
+            if key in ["parameters", "saved"]:
                 continue
             metrics[key] = metrics[key] / loader_len
 
@@ -32,14 +32,14 @@ class Logger():
 
     def log_val_metrics_write(self, metrics):
 
-        file_exists = os.path.exists(f"{self.log_path}/metrics.csv")
+        file_exists = os.path.exists(f"{self.log_path}")
 
         metrics_only = {k: v for k, v in metrics.items() if k != "parameters"}
         first_cols = ["epoch", "saved"]
         other_cols = [k for k in metrics_only.keys() if k not in first_cols]
         ordered_fieldnames = first_cols + other_cols
 
-        with open(f"{self.log_path}/metrics.csv", mode='a', newline='', encoding='utf-8') as f:
+        with open(f"{self.log_path}", mode='a', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=ordered_fieldnames)
             
             if not file_exists:
@@ -52,4 +52,4 @@ class Logger():
             writer.writerow(metrics_only)
 
     def log_save_weights(self, metrics):
-        torch.save(self.model.state_dict(), f"{self.chkpt_path}/best.pt")
+        torch.save(self.model.state_dict(), f"{self.chkpt_path}")
