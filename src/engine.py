@@ -1,5 +1,6 @@
 import torch
 from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
 
 import src
 
@@ -39,6 +40,7 @@ class Trainer:
     def validate(self, epoch):
         self.model.eval()
         metrics_sum = None
+        loss_value = 0.0
 
         pbar = tqdm(self.val_loader, desc= f"validation after epoch {epoch}", leave=False)
         for i, (rgbs, depths) in enumerate(pbar):
@@ -46,6 +48,8 @@ class Trainer:
             depths = depths.to(self.device)
 
             predictions = self.model(rgbs)
+            val_loss = self.criterion(predictions, depths, self.device)
+            loss_value += val_loss.item()
 
             batch_metrics = src.get_metrics(predictions, depths)
             metrics_sum = self.logger.log_val_metrics_add(batch_metrics, metrics_sum)
@@ -54,24 +58,31 @@ class Trainer:
         metrics.update({"epoch": epoch})
        
 
-        return metrics
+        return metrics, loss_value / len(self.val_loader)
 
 
 
 
     def fit(self, epochs):
         abs_rel_best = 1.0
-        for epoch in range(epochs):
-            
-            self.train_epoch(epoch)
-            metrics = self.validate(epoch)
+        tb_writer = SummaryWriter(log_dir=self.logger.log_path.replace(".csv", "_tb"))
+
+        for epoch in range(epochs):    
+            train_loss = self.train_epoch(epoch)
+            metrics, val_loss = self.validate(epoch)
+            metrics.update({
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "saved": "True" if metrics["abs_rel"] < abs_rel_best else "-"
+                })
 
             if metrics["abs_rel"] < abs_rel_best:
                 abs_rel_best = metrics["abs_rel"]
                 self.logger.log_save_weights(metrics)
-                metrics.update({"saved": "True"})
-                self.logger.log_val_metrics_write(metrics)
-            else:
-                metrics.update({"saved": "-"})
-                self.logger.log_val_metrics_write(metrics)
+
+            self.logger.log_val_metrics_write(metrics)
+
+            tb_writer.add_scalars('losses', {'train': train_loss, 'val': val_loss}, epoch)
+            tb_writer.add_scalar('metrics abs_rel', metrics["abs_rel"], epoch)
+            tb_writer.add_scalar('metrics d1', metrics["d1"], epoch)
 
