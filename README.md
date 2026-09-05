@@ -1,8 +1,8 @@
-[![Tests](https://github.com/dmalynyak/depth-estimator-pytorch/actions/workflows/tests.yml/badge.svg)](https://github.com/dmalynyak/depth-estimator-pytorch/actions/workflows/tests.yml)
+[![Tests](https://github.com/dmalynyak/depth-estimator-pytorch/actions/workflows/tests.yaml/badge.svg)](https://github.com/dmalynyak/depth-estimator-pytorch/actions/workflows/tests.yaml)
 
 
 ## About
-
+**Project is not finished**
 ## Demo
 ### Indoor:
 ### Outdoor:
