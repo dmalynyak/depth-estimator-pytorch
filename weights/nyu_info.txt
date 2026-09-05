@@ -1,0 +1,10 @@
+Eigen crop, gt range(0, 10], natural log, prediction upsample, median scaling = False
+
+rmse:       0.7769
+rmse_log:   0.2714
+abs_rel:    0.2121
+d1:         0.6513
+d2:         0.9009
+d3:         0.9727
+train loss: 0.0390
+val loss:   0.0978
