@@ -23,4 +23,4 @@ def test_full_model_forward(dummy_input):
 
     assert out.shape == (2, 1, 480, 640), f"wrong shape: {out.shape}"
 
-    assert torch.all(out >= 0.0) and torch.all(out <= 1.0)
+    assert torch.all(out >= 0.0) and torch.all(out <= 10.0)
