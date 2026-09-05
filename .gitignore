@@ -7,3 +7,4 @@ __pycache__/
 excess/
 data/
 conftest.py
+weights/nyu.pt
