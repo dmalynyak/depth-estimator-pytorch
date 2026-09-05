@@ -62,7 +62,7 @@ def get_metrics(pred, gt):
     # print(f"shape gt {gt.shape}")
 
     return {
-        "parameters": "Eigen crop, gt range(0,10], natural log, prediction upsample, median scsaling = False",
+        "parameters": "Eigen crop gt range(0 10] natural log prediction upsample median scaling = False",
         "rmse": get_RMSE(pred, gt, valid_mask),
         "rmse_log": get_RMSE_log(pred, gt, valid_mask),
         "abs_rel": get_AbsRel(pred, gt, valid_mask),
