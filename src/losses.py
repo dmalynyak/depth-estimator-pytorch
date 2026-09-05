@@ -23,6 +23,34 @@ def _get_L1_lin_loss(gt, pred, device):
     loss = torch.abs(gt[val_mask] - pred[val_mask]).sum() / val_el_num
     return loss # this returns as (1, ) tensor. It keeps gradient tree so .backward() can built gradient descent
 
+def _get_grad_loss(gt, pred, device):
+
+    val_mask, el_num, val_el_num = _get_valid_mask(gt)
+
+    gt_gx   = gt[..., :, 1:]   - gt[..., :, :-1]
+    gt_gy   = gt[..., 1:, :]   - gt[..., :-1, :]
+    pred_gx = pred[..., :, 1:] - pred[..., :, :-1]
+    pred_gy = pred[..., 1:, :] - pred[..., :-1, :]
+
+    mask_gx = val_mask[..., :, 1:] & val_mask[..., :, :-1]
+    mask_gy = val_mask[..., 1:, :] & val_mask[..., :-1, :]
+
+    n_gx = mask_gx.sum()
+    n_gy = mask_gy.sum()
+
+    if n_gx == 0 and n_gy == 0:
+        return torch.tensor(0.0, device=device, requires_grad=True)
+
+    loss = torch.tensor(0.0, device=device)
+    if n_gx > 0:
+        loss = loss + torch.abs(gt_gx[mask_gx] - pred_gx[mask_gx]).sum() / n_gx
+    if n_gy > 0:
+        loss = loss + torch.abs(gt_gy[mask_gy] - pred_gy[mask_gy]).sum() / n_gy
+
+    return loss # this returns as (1, ) tensor. It keeps gradient tree so .backward() can built gradient descent
+
+
+
 class NYULoss(nn.Module):
 
     def __init__(self, l=0.1):
@@ -32,6 +60,7 @@ class NYULoss(nn.Module):
     def forward(self, pred, gt, device):
 
         l1_lin = _get_L1_lin_loss(gt, pred, device=device)
+        l1_grad = _get_grad_loss(gt, pred, device)
 
-        return self.l * l1_lin
+        return self.l * l1_lin + l1_grad
 
