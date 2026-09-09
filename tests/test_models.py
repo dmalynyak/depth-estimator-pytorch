@@ -3,6 +3,8 @@ import pytest
 from src.models.resnet18 import Resnet18Encoder
 from src.models.nyudecoder import NYUdecoder
 from src.models.kittidecoder import KITTIdecoder
+from src.models.posenetdecoder import PosenetDecoder
+from src.models.posenetencoder import PosenetResnet18Encoder
 from src import NYUmodel
 import src
 
@@ -27,7 +29,7 @@ def test_full_model_forward(dummy_input):
     assert torch.all(out >= 0.0) and torch.all(out <= 10.0)
 
 
-def test_kitti_model():
+def test_kitti_depthbet():
     enc = Resnet18Encoder(pretrained=False)
     dec = KITTIdecoder()
     mod = src.KITTIdepthNET()
@@ -43,3 +45,20 @@ def test_kitti_model():
         d1 = mod_out[s]
         assert d1.shape == (2, 1, 192 >> s, 640 >> s), f"got {d1.shape}"
         assert 0.0 <= d1.min() and d1.max() <= 1.0, f"not in [0,1]"
+
+def test_kitti_posenet():
+    enc = PosenetResnet18Encoder(pretrained=False)
+    dec = PosenetDecoder()
+    mod = src.KITTIposeNET()
+
+    x = torch.randn(2, 6, 192, 640)
+    y = torch.randn(2, 3, 192, 640)
+    z = torch.randn(2, 3, 192, 640)
+
+    rot, trans = dec(enc(x))
+    mod_rot, mod_trans = mod(y, z)
+
+    for r, t in [(rot, trans), (mod_rot, mod_trans)]:
+        assert r.shape == (2, 3), f"got {r.shape}"
+        assert t.shape == (2, 3), f"got {t.shape}"
+        assert r.abs().max() < 0.1, f"{r.abs().max()}"

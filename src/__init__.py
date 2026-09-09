@@ -1,5 +1,5 @@
 from .dataloaders import DepthNYUDataset, DepthKITTIDataset
-from .models import NYUmodel, KITTIdepthNET
+from .models import NYUmodel, KITTIdepthNET, KITTIposeNET
 from .losses import NYULoss
 from .metrics import get_metrics
 from .utils import Logger
