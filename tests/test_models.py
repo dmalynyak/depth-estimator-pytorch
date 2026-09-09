@@ -1,9 +1,10 @@
 import torch
 import pytest
-# Замените на ваши реальные импорты
 from src.models.resnet18 import Resnet18Encoder
 from src.models.nyudecoder import NYUdecoder
-from src import NYUmodel 
+from src.models.kittidecoder import KITTIdecoder
+from src import NYUmodel
+import src
 
 @pytest.fixture
 def dummy_input():
@@ -24,3 +25,21 @@ def test_full_model_forward(dummy_input):
     assert out.shape == (2, 1, 480, 640), f"wrong shape: {out.shape}"
 
     assert torch.all(out >= 0.0) and torch.all(out <= 10.0)
+
+
+def test_kitti_model():
+    enc = Resnet18Encoder(pretrained=False)
+    dec = KITTIdecoder()
+    mod = src.KITTIdepthNET()
+
+    out = dec(enc(torch.randn(2, 3, 192, 640)))
+    mod_out = mod(torch.randn(2, 3, 192, 640))
+
+    for s in range(4):
+        d = out[s]
+        assert d.shape == (2, 1, 192 >> s, 640 >> s), f"got {d.shape}"
+        assert 0.0 <= d.min() and d.max() <= 1.0, f"not in [0,1]"
+    for s in range(4):
+        d1 = mod_out[s]
+        assert d1.shape == (2, 1, 192 >> s, 640 >> s), f"got {d1.shape}"
+        assert 0.0 <= d1.min() and d1.max() <= 1.0, f"not in [0,1]"

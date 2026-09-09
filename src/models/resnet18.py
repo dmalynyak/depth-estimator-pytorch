@@ -28,6 +28,13 @@ class Resnet18Encoder(nn.Module):
         #   [B, 512, 8, 10] ]
         # last avgpool and fc are discarder
 
+        # for KITTI input (B, 3, 192, 640) (transforms to that during dataloader) it has
+        # [ [B, 64, 96, 320] ,
+        #   [B, 64, 48, 160] ,
+        #   [B, 128, 24, 80] ,
+        #   [B, 256, 12, 40] ,
+        #   [B, 512, 6, 20] ]
+
         x = self.stem(x)
         feats.append(x) # 1/2, 64ch
 

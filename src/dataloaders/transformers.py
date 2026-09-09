@@ -30,12 +30,14 @@ class HorizontalFlip:
     def __init__(self):
         self.p = 0.5
 
-    def __call__(self, rgb, depth):
-        if random.random() > self.p:
-            rgb = torch.flip(rgb, dims=[-1])
-            depth = torch.flip(depth, dims=[-1])
-        return rgb, depth
-
+    def __call__(self, rgb, depth=None):
+        if depth is not None:
+            if random.random() > self.p:
+                rgb = torch.flip(rgb, dims=[-1])
+                depth = torch.flip(depth, dims=[-1])
+            return rgb, depth
+        rgb = torch.flip(rgb, dims=[-1])
+        return rgb
 
 class ColorJitter:
 
@@ -43,10 +45,12 @@ class ColorJitter:
         self.jitter = torchvision.transforms.ColorJitter(brightness, contrast, saturation, hue)
 
 
-    def __call__(self, rgb, depth):
+    def __call__(self, rgb, depth=None):
+        if depth is not None:
+            rgb = self.jitter(rgb)
+            return rgb, depth
         rgb = self.jitter(rgb)
-        return rgb, depth
-
+        return rgb
 
 class NormalizeImageNet:
 
@@ -82,9 +86,9 @@ def built_transform_train_imagenet():
 
     return Compose([
         ResizeImageNet(),
-        NormalizeImageNet(),
+        ColorJitter(),
         HorizontalFlip(),
-        ColorJitter()
+        NormalizeImageNet(),
     ])
 
 
@@ -102,3 +106,30 @@ def built_one_img_transform(heigh, width):
         ResizeImageNet((heigh, width)),
         NormalizeImageNet(),
     ])
+
+class KittiJitter:
+
+    def __init__(self, brightness=0.2, contrast=0.2, saturation=0.2, hue=0.05, p=0.5):
+        self.jitter = torchvision.transforms.ColorJitter(brightness, contrast, saturation, hue)
+        self.p = p
+
+    def __call__(self, frames):
+        # frames (N, 3, H, W)
+        if random.random() >= self.p:
+            return frames
+
+        n = frames.shape[0]
+        strip = torch.cat(list(frames), dim=-1) # (3, H, N*W)
+        strip = self.jitter(strip)
+        return torch.stack(torch.chunk(strip, n, dim=-1))
+
+
+class NormalizeKittiImageNet:
+
+    def __init__(self, mean=IMAGENET_MEAN, std=IMAGENET_STD):
+        self.normalize = torchvision.transforms.Normalize(mean = mean, std = std)
+
+    def __call__(self, frame):
+
+        frame = self.normalize(frame)
+        return frame
