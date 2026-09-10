@@ -67,12 +67,12 @@ python scripts/convert_mat_to_png_npy.py
 
 train indoor images:
 ```bash
-python -m src.train --device cuda --chkpt_path 'your_path' --log_path 'your_path'
+python -m src.indoor_train --device cuda --chkpt_path your_path/best.pt --log_path your_path/metrics.csv
 # to see live graphics of training run:
 tensorboard --logdir="your_log_path" 
 ```
 
 inference indoor NYU images:
 ```bash
-python -m nyu_inference --device cuda --file_path 'your_file_path' --model_path weights/nyu.pt 
+python -m indoor_inference --device cuda --file_path 'your_file_path' --model_path weights/nyu.pt 
 ```

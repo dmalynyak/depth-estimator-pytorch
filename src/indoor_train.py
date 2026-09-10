@@ -1,4 +1,4 @@
-from src.engine import Trainer
+from src.train_engines import TrainerIndoor
 import src
 import torch
 import src.utils
@@ -23,7 +23,7 @@ def main(args):
     criterion = src.NYULoss()
     logger = src.utils.Logger(model, save_log_path=log_path, save_checkpoint_path=chkpt_path)
 
-    trainer = src.Trainer(model, train_loader, val_loader, criterion, optimizer, device, logger)
+    trainer = src.TrainerIndoor(model, train_loader, val_loader, criterion, optimizer, device, logger)
 
     trainer.fit(epochs=1000)
 

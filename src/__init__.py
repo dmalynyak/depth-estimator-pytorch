@@ -1,10 +1,11 @@
 from .dataloaders import DepthNYUDataset, DepthKITTIDataset
 from .models import NYUmodel, KITTIdepthNET, KITTIposeNET
+from .metrics import nyu_get_metrics
 from .losses import NYULoss
-from .metrics import get_metrics
 from .utils import Logger
-from .engine import Trainer
-from .inference_engine import Inference
+from .train_engines import TrainerIndoor
+from .inference_engines import InferenceIndoor
+from .metrics import nyu_get_metrics
 
 __all__ = [
     "DepthNYUDataset",

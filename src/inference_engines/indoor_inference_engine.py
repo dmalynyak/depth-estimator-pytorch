@@ -3,7 +3,7 @@ import torch
 import cv2
 
 
-class Inference():
+class InferenceIndoor():
     def __init__(self, model, heigh=240, width=320, device='cpu'):
         self.model = model
         self.width = width
@@ -35,23 +35,3 @@ class Inference():
 
     def draw_image(self, rgb, depth, out_path):
         src.utils.draw_prediction(rgb, depth, out_path)
-
-
-
-def main(args):
-    device = args.device
-    model = args.model_path
-    file_path = args.file_path
-
-    type, out_path = src.utils.parse_extension(file_path)
-    assert type in ["image", "video"]
-
-    if type == "image":
-        image_inference(model, file_path, out_path, device)
-    elif type == "video":
-        video_inference(model, file_path, out_path, device)
-
-if __name__ == "__main__":
-    args = src.utils.parse_inference_args()
-    print(args)
-    main(args)

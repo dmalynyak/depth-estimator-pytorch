@@ -1,0 +1,1 @@
+from .indoor_inference_engine import InferenceIndoor

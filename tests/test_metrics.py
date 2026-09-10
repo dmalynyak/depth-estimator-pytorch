@@ -4,7 +4,7 @@ import src.utils
 import src.metrics
 import math
 
-from src.metrics import (
+from src.metrics.nyu_metrics import (
     get_RMSE, get_RMSE_log, get_AbsRel,
     get_del1, get_del2, get_del3,
     get_valid_mask,
@@ -19,10 +19,10 @@ def test_perfect_prediction():
 
     gt = torch.rand(32, 32, dtype=torch.float64) * 9 + 0.7
     all_valid_mask = torch.ones_like(gt, dtype=torch.bool)
-    assert src.metrics.get_RMSE(gt.clone(), gt, all_valid_mask) == pytest.approx(0.0)
-    assert src.metrics.get_RMSE_log(gt.clone(), gt, all_valid_mask) == pytest.approx(0.0)
-    assert src.metrics.get_AbsRel(gt.clone(), gt, all_valid_mask) == pytest.approx(0.0)
-    assert src.metrics.get_del1(gt.clone(), gt, all_valid_mask) == pytest.approx(1.0)
+    assert src.metrics.nyu_metrics.get_RMSE(gt.clone(), gt, all_valid_mask) == pytest.approx(0.0)
+    assert src.metrics.nyu_metrics.get_RMSE_log(gt.clone(), gt, all_valid_mask) == pytest.approx(0.0)
+    assert src.metrics.nyu_metrics.get_AbsRel(gt.clone(), gt, all_valid_mask) == pytest.approx(0.0)
+    assert src.metrics.nyu_metrics.get_del1(gt.clone(), gt, all_valid_mask) == pytest.approx(1.0)
 
 def test_rmse_constant_offset():
     gt = torch.rand(32, 32, dtype=torch.float64) * 8 + 1

@@ -4,7 +4,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 import src
 
-class Trainer:
+class TrainerIndoor:
     def __init__(self, model, train_loader, val_loader, criterion, optimizer, device, logger):
         self.model = model.to(device)
         self.train_loader = train_loader
@@ -51,7 +51,7 @@ class Trainer:
             val_loss = self.criterion(predictions, depths, self.device)
             loss_value += val_loss.item()
 
-            batch_metrics = src.get_metrics(predictions, depths)
+            batch_metrics = src.nyu_get_metrics(predictions, depths)
             metrics_sum = self.logger.log_val_metrics_add(batch_metrics, metrics_sum)
 
         metrics = self.logger.log_val_metrics_devide_batches(metrics_sum, len(self.val_loader))

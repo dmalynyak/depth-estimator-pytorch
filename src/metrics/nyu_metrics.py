@@ -46,7 +46,7 @@ def get_valid_mask(gt):
     return eigen_mask.bool() & mask
 
 # must be upscaled
-def get_metrics(pred, gt):
+def nyu_get_metrics(pred, gt):
 
     assert pred.shape[-1] in (320, 640), f"width of tensor must be 320 or 640, got {pred.shape[-1]}"
 
