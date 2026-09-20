@@ -2,7 +2,13 @@
 
 
 ## About
-**Project is not finished**
+**Project is not finished**  
+
+Monocular depth estimator for indoor and outdoor images.    
+
+Indoor supervised part of the project is done. ResNet18 encoder, custom decoder, training, eval metrics, inference pipeline.  
+
+Outdoor self-supervised path of this project is in progress. ResNet18 encoder, PoseNet, U-Net-style decoder, warping are done. Loss functions, eval metrics, training, inference are left.
 ## Demo
 ### Indoor:
 ### Outdoor:
