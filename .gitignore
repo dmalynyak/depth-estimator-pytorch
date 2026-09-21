@@ -10,3 +10,4 @@ conftest.py
 weights/nyu.pt
 scripts/velo_bin_to_np.py
 src/utils/kitti_velo*
+assets/future/
