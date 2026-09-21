@@ -11,6 +11,8 @@ Indoor supervised part of the project is done. ResNet18 encoder, custom decoder,
 Outdoor self-supervised path of this project is in progress. ResNet18 encoder, PoseNet, U-Net-style decoder, warping are done. Loss functions, eval metrics, training, inference are left.
 ## Demo
 ### Indoor:
+![Demo](assets/nyu_inference_demo.png)
+
 ### Outdoor:
 
 ## Features
