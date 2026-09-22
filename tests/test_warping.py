@@ -16,7 +16,7 @@ def test_warp_identity(device):
     depth = torch.rand(B, 1, H, W) * 50 + 1
     rgb = torch.rand(B, 3, H, W)
 
-    out = get_warped_t_from_t1(K, inv_K, T, depth, rgb, device=device)
+    out = get_warped_t_from_t1(rgb, depth, T, K, inv_K, device=device)
 
     assert out.shape == (B, 3, H, W), f"got {out.shape}"
     assert torch.allclose(out, rgb, atol=1e-3), f"not the same"
