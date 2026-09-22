@@ -42,7 +42,7 @@ rgb_t1     : (B, 3, H, W)     from dataloader, [0, 1]
 pix_coords : (B, 3, H*W)        grid coord, made before
 returns    : (B, 3, H, W)     frame t with t+1 pixels
 """
-def get_warped_t_from_t1(K, inv_K, T, depth, rgb_t1, device):
+def get_warped_t_from_t1(rgb_t1, depth, T, K, inv_K, device):
 
     B, _, H, W = rgb_t1.shape
     N = H * W
