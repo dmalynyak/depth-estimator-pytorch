@@ -1,1 +1,2 @@
 from .indoor_losses import _get_valid_mask, _get_L1_lin_loss, _get_grad_loss, NYULoss
+from .outdoor_losses import PhotometricLoss

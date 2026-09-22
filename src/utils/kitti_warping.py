@@ -23,11 +23,17 @@ def warp_pixs_to_3d(pixels, depth_pred, inv_K):
     return rays * depth_pred
 
 
-def _get_pix_coords(H, W):
-    u, v = torch.meshgrid(torch.arange(W), torch.arange(H), indexing="xy")
-    pix_coords = torch.stack([u.flatten(), v.flatten(), torch.ones(H*W)])
+def _get_pix_coords(H, W, B, device):
+    u, v = torch.meshgrid(torch.arange(W, device=device), torch.arange(H, device=device), indexing="xy")
+    pix_coords = torch.stack([u.flatten(), v.flatten(), torch.ones(H*W, device=device)])
     pix_coords = pix_coords.unsqueeze(0).repeat(B, 1, 1).float()   # (B, 3, H*W)
+    return pix_coords
 
+
+# gets predicted depth and pose of frame t(from DepthNet and PoseNet)
+# gets GT rgb t+1 frame and GT K values (camera info)
+# from pixels of t+1 rgb frame constructs predicted rgb t frame (using structure shown in assets)
+# then photometric loss can compare GT rgb t frame with predicted rgb t frame (made from t+1 pixels)
 """
 K, inv_K   : (B, 3, 3)        already this shape
 T          : (B, 4, 4)        needs reshaping
@@ -36,12 +42,12 @@ rgb_t1     : (B, 3, H, W)     from dataloader, [0, 1]
 pix_coords : (B, 3, H*W)        grid coord, made before
 returns    : (B, 3, H, W)     frame t with t+1 pixels
 """
-def get_warped_t_from_t1(K, inv_K, T, depth, rgb_t1):
+def get_warped_t_from_t1(K, inv_K, T, depth, rgb_t1, device):
 
     B, _, H, W = rgb_t1.shape
     N = H * W
 
-    pix_coords = _get_pix_coords(H, W)
+    pix_coords = _get_pix_coords(H, W, B, device)
 
     d = depth.flatten(start_dim=2) # (B, 1, H*W) depth in metres
 
@@ -64,5 +70,14 @@ def get_warped_t_from_t1(K, inv_K, T, depth, rgb_t1):
         uv[..., 1] / (H - 1) * 2 - 1,
     ], dim=-1)
 
-    # (B, 3, H, W)
-    return F.grid_sample(rgb_t1, uv, mode="bilinear", padding_mode="border", align_corners=True)
+    # (B, 3, H, W) from rgb_t1 pixels creates picture for uv locations of those pixels 
+    return torch.nn.functional.grid_sample(rgb_t1, uv, mode="bilinear", padding_mode="border", align_corners=True)
+    # takes 4 neighbour pixels for creation of one new pixel. So gradient can flow to neighbour pixels
+    # using scaling in depthnet (see output of depthnet) we can ensure gradien flow independantly of GR/pred distance
+
+
+# TRAINING NEEDS RODRIGUES RESHAPING OF PREDICTED POSE T!
+# ACTUAL MATH OF WARPING FOR ONE PIXEL
+def _reshape_T(T):
+    pass
+
