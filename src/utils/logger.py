@@ -1,10 +1,13 @@
 import os, csv, torch
 
 class Logger():
-    def __init__(self, model, save_log_path, save_checkpoint_path):
+    def __init__(self, model, save_log_path, save_checkpoint_path, model2=None, optimizer=None, scheduler=None):
         self.log_path = save_log_path
         self.chkpt_path = save_checkpoint_path
         self.model = model
+        self.model2 = model2
+        self.optimizer = optimizer
+        self.scheduler = scheduler
 
     def log_val_metrics_add(self, new_metrics, saved_metrics=None):
 
@@ -53,3 +56,15 @@ class Logger():
 
     def log_save_weights(self, metrics):
         torch.save(self.model.state_dict(), f"{self.chkpt_path}")
+
+    def log_kitti_save_chkpt(self):
+        checkpoint = {
+            'depth_net': self.model.state_dict(),
+            'pose_net': self.model2.state_dict(),
+            'optimizer': self.optimizer.state_dict(),
+            'scheduler': self.scheduler.state_dict()
+        }
+        torch.save(checkpoint, f"{self.chkpt_path}")
+
+    # def log_kitti_depth_weights(self):
+    #     torch.save(self.model.state_dict(), f"{self.chkpt_path}")
