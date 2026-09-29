@@ -134,9 +134,9 @@ class PhotometricLoss(nn.Module):
         self.Error = PhotometricError()
 
     def forward(self, dataloader_out, depth_out, T_prev, T_next, device):
-        rgbs_clean = dataloader_out["imgs"]
-        K = dataloader_out["K"]
-        inv_K = dataloader_out["inv_K"]
+        rgbs_clean = dataloader_out["imgs"].to(device)
+        K = dataloader_out["K"].to(device)
+        inv_K = dataloader_out["inv_K"].to(device)
         clean_prev = rgbs_clean[:, 0]
         clean_t = rgbs_clean[:, 1]
         clean_next = rgbs_clean[:, 2]
@@ -156,8 +156,10 @@ class PhotometricLoss(nn.Module):
             error_next = self.Error(src.utils.get_warped_t_from_t1(clean_next, depth, T_next, K, inv_K, device), clean_t)
             error = torch.min(error_prev, error_next)
 
-            mask = (error < identity_map).float()
-            loss = loss + (error * mask).mean()
+            #mask = (error < identity_map).float()
+            #print("mask keeps:", mask.float().mean().item())
+            error = torch.min(error, identity_map)
+            loss = loss + error.mean()
             loss = loss + 1e-3 * smoothness(disp_scaled, clean_t) / (2 ** s) # should contribute a little
 
         return loss / 4
