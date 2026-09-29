@@ -156,8 +156,6 @@ class PhotometricLoss(nn.Module):
             error_next = self.Error(src.utils.get_warped_t_from_t1(clean_next, depth, T_next, K, inv_K, device), clean_t)
             error = torch.min(error_prev, error_next)
 
-            #mask = (error < identity_map).float()
-            #print("mask keeps:", mask.float().mean().item())
             error = torch.min(error, identity_map)
             loss = loss + error.mean()
             loss = loss + 1e-3 * smoothness(disp_scaled, clean_t) / (2 ** s) # should contribute a little
