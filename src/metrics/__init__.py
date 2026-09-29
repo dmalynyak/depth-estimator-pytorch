@@ -1,1 +1,2 @@
 from .nyu_metrics import nyu_get_metrics
+from .kitti_outdoor_metrics import kitti_get_metrics
