@@ -8,6 +8,9 @@ excess/
 data/
 conftest.py
 weights/nyu.pt
+weights/kitti.pt
 scripts/velo_bin_to_np.py
+scripts/lidar_gt*
 src/utils/kitti_velo*
 assets/future/
+debug*
