@@ -4,13 +4,6 @@ from .metrics import nyu_get_metrics
 from .losses import NYULoss, PhotometricLoss
 from .utils import Logger
 from .train_engines import TrainerIndoor, TrainerOutdoor
-from .inference_engines import InferenceIndoor
+from .inference_engines import InferenceIndoor, InferenceOutdoor
 from .metrics import nyu_get_metrics, kitti_get_metrics
 from .utils import geometry
-
-__all__ = [
-    "DepthNYUDataset",
-    "NYUmodel",
-    "get_metrics",
-    "Logger"
-]
