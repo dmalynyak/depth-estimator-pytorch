@@ -1,14 +1,14 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("excess/models/metrics_02.csv", comment='#')
+df = pd.read_csv("excess/models/metrics5.csv", comment='#')
 
 fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 fig.patch.set_facecolor('white')
 
 
 axes[0].plot(df['epoch'], df['train_loss'], label='Train Loss', color='#1f77b4', linewidth=1.5, alpha=0.9)
-axes[0].plot(df['epoch'], df['val_loss'], label='Val Loss', color='#ff7f0e', linewidth=1.5, alpha=0.9)
+# axes[0].plot(df['epoch'], df['val_loss'], label='Val Loss', color='#ff7f0e', linewidth=1.5, alpha=0.9)
 axes[0].set_title('losses', fontsize=14, fontweight='bold')
 axes[0].set_ylabel('loss')
 axes[0].legend(loc='upper right')
