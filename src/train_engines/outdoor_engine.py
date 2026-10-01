@@ -1,5 +1,3 @@
-# T must be reshaped before warping (geometry.py)
-
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -40,7 +38,7 @@ class TrainerOutdoor:
             depth_pred = self.DepthNet(img_aug_t)
             rot_prev, tran_prev = self.PoseNet(img_aug_prev, img_aug_t)
             rot_next, tran_next = self.PoseNet(img_aug_t, img_aug_next)
-            T_prev_pred = src.geometry.pose_to_matrix(rot_prev, tran_prev)
+            T_prev_pred = src.geometry.pose_to_matrix(rot_prev, tran_prev, invert=True)
             T_next_pred = src.geometry.pose_to_matrix(rot_next, tran_next)
 
             loss = self.criterion(load, depth_pred, T_prev_pred, T_next_pred, self.device)
@@ -110,7 +108,7 @@ class TrainerOutdoor:
             if metrics["abs_rel"] < abs_rel_best:
                 abs_rel_best = metrics["abs_rel"]
                 print(f"epoch: {epoch}, checkpoint saved")
-                self.logger.log_save_weights(metrics)
+                self.logger.log_kitti_save_chkpt(metrics)
 
             self.logger.log_val_metrics_write(metrics)
 
