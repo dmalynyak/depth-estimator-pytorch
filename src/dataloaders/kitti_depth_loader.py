@@ -91,3 +91,8 @@ def get_inference_tensor_kitti(path, heigh=192, width=640, device="cpu"):
     pil = Image.fromarray(rgb) # numpy -> PIL
     transform = src.dataloaders.built_one_img_transform(heigh, width)
     return transform(pil).unsqueeze(0).to(device)
+
+def get_inference_frame_kitti(frame_bgr, transform, device):
+    rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+    pil = Image.fromarray(rgb)
+    return transform(pil).unsqueeze(0).to(device)
