@@ -57,7 +57,7 @@ class Logger():
     def log_save_weights(self, metrics):
         torch.save(self.model.state_dict(), f"{self.chkpt_path}")
 
-    def log_kitti_save_chkpt(self):
+    def log_kitti_save_chkpt(self, metrics):
         checkpoint = {
             'depth_net': self.model.state_dict(),
             'pose_net': self.model2.state_dict(),
