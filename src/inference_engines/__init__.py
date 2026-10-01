@@ -1,1 +1,2 @@
 from .indoor_inference_engine import InferenceIndoor
+from .outdoor_inference_engine import InferenceOutdoor
