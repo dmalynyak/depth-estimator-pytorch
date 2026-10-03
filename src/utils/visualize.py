@@ -1,9 +1,9 @@
 import torch
-import matplotlib.pyplot as plt
 import numpy as np
 import src.dataloaders
 
 def visualize_1chw(rgb, depth, depth_pred=None):
+    import matplotlib.pyplot as plt
 
     assert rgb.shape == (1, 3, 240, 320), f"must be rgb(1, 3, 240, 320), got {rgb.shape}"
     assert depth.shape == (1, 1, 240, 320), f"must be depth(1, 1, 240, 320), got {depth.shape}"
@@ -54,6 +54,7 @@ def visualize_1chw(rgb, depth, depth_pred=None):
     plt.show()
 
 def draw_prediction(rgb, depth_pred, save_path):
+    import matplotlib.pyplot as plt
 
     rgb, depth_pred = src.dataloaders.denormalize_image_net(rgb, depth_pred)
     rgb = rgb.squeeze(0)
@@ -82,6 +83,7 @@ def draw_prediction(rgb, depth_pred, save_path):
 
 
 def draw_prediction_outdoor(rgb, disp_pred, save_path, scale=None):
+    import matplotlib.pyplot as plt
     rgb, _ = src.dataloaders.denormalize_image_net(rgb, None)
     rgb_plot = rgb[0].permute(1, 2, 0).numpy()
 

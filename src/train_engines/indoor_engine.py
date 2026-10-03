@@ -1,6 +1,5 @@
 import torch
-from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
+
 
 import src
 
@@ -15,6 +14,7 @@ class TrainerIndoor:
         self.logger = logger
 
     def train_epoch(self, epoch):
+        from tqdm import tqdm
         self.model.train()
         loss_value = 0.0
 
@@ -38,6 +38,7 @@ class TrainerIndoor:
 
     @torch.no_grad
     def validate(self, epoch):
+        from tqdm import tqdm
         self.model.eval()
         metrics_sum = None
         loss_value = 0.0
@@ -64,6 +65,8 @@ class TrainerIndoor:
 
 
     def fit(self, epochs):
+        from tqdm import tqdm
+        from torch.utils.tensorboard import SummaryWriter
         abs_rel_best = 1.0
         tb_writer = SummaryWriter(log_dir=self.logger.log_path.replace(".csv", "_tb"))
 

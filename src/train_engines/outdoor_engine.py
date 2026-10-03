@@ -1,7 +1,7 @@
 import torch
 import numpy as np
-from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
+
+
 
 import src
 
@@ -18,6 +18,7 @@ class TrainerOutdoor:
         self.device = device
 
     def train_epoch(self, epoch):
+        from tqdm import tqdm
         self.DepthNet.train()
         self.PoseNet.train()
         loss_value = 0.0
@@ -54,6 +55,7 @@ class TrainerOutdoor:
 
     @torch.no_grad
     def validate(self, epoch):
+        from tqdm import tqdm
         self.DepthNet.eval()
         self.PoseNet.eval()
         metrics_sum = None
@@ -93,6 +95,7 @@ class TrainerOutdoor:
 
 
     def fit(self, epochs):
+        from torch.utils.tensorboard import SummaryWriter
         abs_rel_best = float('inf')
         # tb_writer = SummaryWriter(log_dir=self.logger.log_path.replace(".csv", "_tb"))
 

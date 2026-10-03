@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from tqdm import tqdm
 import os, csv
 import src
  
@@ -30,6 +29,7 @@ def log_val_metrics_devide_batches_test(metrics, loader_len):
  
 @torch.no_grad
 def test(model_path):
+    from tqdm import tqdm
     device = torch.device("cuda")
     model = src.KITTIdepthNET().to(device)
     model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True)['depth_net'])
