@@ -12,7 +12,7 @@ Everything is written from scratch in PyTorch, except the pretrained ResNet18 en
 |---|---|---|
 | **Dataset** | NYU Depth v2 | KITTI raw |
 | **Training** | supervised (depth labels) | self-supervised (video frames only) |
-| **Networks** | ResNet18 encoder + custom decoder | ResNet18-style decoders + DepthNet, PoseNet custom decoders |  
+| **Networks** | ResNet18 encoder + custom decoder | ResNet18-style encoders + DepthNet, PoseNet custom decoders |  
 
 The outdoor part follows the approach of [Monodepth2](https://github.com/nianticlabs/monodepth2), reimplemented from scratch.
 
@@ -24,42 +24,6 @@ The outdoor part follows the approach of [Monodepth2](https://github.com/niantic
 
 ### Outdoor:
 ![Demo](assets/kitti_inference_demo.gif)
-## Structure  
-### Warping
-```mermaid
-graph TD
-    A["Pixel grid of frame t (u, v, 1)<br/>constant, built once"] --> B["Rays with depth = 1<br/>multiply by inv K"]
-    invK["inv K<br/>from calibration"] --> B
-    B --> C["3D points in camera t<br/>multiply by depth"]
-    depth["depth of frame t<br/>predicted by DepthNet"] --> C
-    C --> D["Same 3D points in camera t+1<br/>multiply by pose T"]
-    poseT["pose T, t -> t+1<br/>predicted by PoseNet"] --> D
-    D --> E["Pixel coordinates in frame t+1<br/>multiply by K, divide by z"]
-    K["K<br/>from calibration"] --> E
-    E --> F["Reconstructed (warped) frame t<br/>every pixel of t takes the color of frame t+1<br/>at its computed coordinates (using bilinear sampling)"]
-    clean["clean frame t+1"] --> F
-```
-The same is done for frame t-1 with the inverted pose.  
-If depth and pose are correct, the reconstructed frame t looks exactly like the real frame t.
-
-### Forward pass
-```mermaid
-graph TD
-    Depth["DepthNet<br/>in: augmented frame t<br/>out: depth of frame t, 4 scales"] --> Warp["Warp<br/>see structure above"]
-    Pose["PoseNet<br/>in: augmented pairs (t-1, t) and (t, t+1)<br/>out: poses t -> t-1 and t -> t+1"] --> Warp
-    Clean["Dataloader<br/>clean frames t-1, t+1"] --> Warp
-    Warp --> Loss["Photometric loss<br/>reconstructed (warped) frame t vs clean frame t<br/>min reprojection, automasking, smoothness"]
-    CleanT["clean frame t"] --> Loss
-    Loss --> Back["Backpropagation<br/>updates DepthNet and PoseNet together"]
-```
-Networks see augmented frames, the loss compares clean ones.
-
-## Features
- - **Self-supervision** - outdoor model is trained only on video frames, no depth labels. Depth and motion are learned through image warping (see structure above).
-  - **End to end inference** - images and video are processed automatically.
- - **Photometric loss** -  0.85 · SSIM + 0.15 · L1 between the warped and the real frame, computed on 4 decoder scales, plus edge-aware smoothness.
- - **TensorBoard and CSV logging** - live training graphs, metrics after every epoch, the best checkpoint is saved by AbsRel.
- - **Automasking** - pixels that don't change between frames (static camera, objects moving with the car) are ignored.
 
 
 ## Results 
@@ -93,14 +57,58 @@ Eigen test drives, Garg crop, gt range (0.001, 80] m, median scaling.
 Monodepth2 is trained on the full Eigen-Zhou split of KITTI dataset (**~40,000 frames**, static frames removed).
 This project is trained on a subset of KITTI Eigen-Zhou split (**~7,500 frames**, static are not removed)
  
+## How it works  
+### Warping
+```mermaid
+graph TD
+    A["Pixel grid of frame t (u, v, 1)<br/>constant, built once"] --> B["Rays with depth = 1<br/>multiply by inv K"]
+    invK["inv K<br/>from calibration"] --> B
+    B --> C["3D points in camera t<br/>multiply by depth"]
+    depth["depth of frame t<br/>predicted by DepthNet"] --> C
+    C --> D["Same 3D points in camera t+1<br/>multiply by pose T"]
+    poseT["pose T, t -> t+1<br/>predicted by PoseNet"] --> D
+    D --> E["Pixel coordinates in frame t+1<br/>multiply by K, divide by z"]
+    K["K<br/>from calibration"] --> E
+    E --> F["Reconstructed (warped) frame t<br/>every pixel of t takes the color of frame t+1<br/>at its computed coordinates (using bilinear sampling)"]
+    clean["clean frame t+1"] --> F
+```
+The same is done for frame t-1 with the inverted pose.  
+If depth and pose are correct, the reconstructed frame t looks exactly like the real frame t.
+
+### Forward pass
+```mermaid
+graph TD
+    Depth["DepthNet<br/>in: augmented frame t<br/>out: depth of frame t, 4 scales"] --> Warp["Warp<br/>see structure above"]
+    Pose["PoseNet<br/>in: augmented pairs (t-1, t) and (t, t+1)<br/>out: poses t -> t-1 and t -> t+1"] --> Warp
+    Clean["Dataloader<br/>clean frames t-1, t+1"] --> Warp
+    Warp --> Loss["Photometric loss<br/>reconstructed (warped) frame t vs clean frame t<br/>min reprojection, automasking, smoothness"]
+    CleanT["clean frame t"] --> Loss
+    Loss --> Back["Backpropagation<br/>updates DepthNet and PoseNet together"]
+```
+Networks see augmented frames, the loss compares clean ones.
+
+## Features
+ - **Self-supervision** - outdoor model is trained only on video frames, no depth labels. Depth and motion are learned through image warping (see structure above).
+ - **End to end inference** - images and video are processed automatically.
+ - **Photometric loss** -  0.85 · SSIM + 0.15 · L1 between the warped and the real frame, computed on 4 decoder scales, plus edge-aware smoothness.
+ - **TensorBoard and CSV logging** - live training graphs, metrics after every epoch, the best checkpoint is saved by AbsRel.
+ - **Automasking** - pixels that don't change between frames (static camera, objects moving with the car) are ignored.
+
 
 ## Limitations
- - **Unknown scale** - a single camera can't tell a small close scene from a big far one, so outdoor model predicts depth only up to a scale factor. Metrics and inference use median scaling.
- - **Moving objects** - cars that move with the same speed as the camera look static so PoseNet tends to predict infinite distance. This problem is being partly solved by identity mask in training loop. 
- - **Training data** - only part of KITTI raw is used (due to size limitations), static frames are not removed. Thus results are little bit worse then Monodepth2 project.
- - **Indoor dataset size** - NYU part is trained on ~750 images only. This part of the project was a simple training before self-supervised outdoor part, thats why results are so bad.
+ - **Unknown scale** - a single camera can't tell a small close scene from a big far one, so outdoor model predicts depth only up to a scale factor. Metrics use median scaling.
+ - **Moving objects** - cars moving at the same speed as the camera look static, so the model tends to predict infinite depth for them. Automasking reduces this problem but doesn't remove it. 
+ - **Training data** - only part of KITTI raw is used (disk space), and static frames are not removed. This is the main reason the results are behind Monodepth2.
+ - **Indoor dataset size** - NYU part is trained on ~750 images only. This part of the project was a simple training before self-supervised outdoor part, thats why results are modest.
  - **Small batch size** - KITTI part is trained using batch size = 4, due to the lack of VRAM.
 
+## Try it with Docker
+You need only [Docker](https://docs.docker.com/get-docker/) installed, run:
+```bash
+docker run --rm -p 8000:8000 ghcr.io/dmalynyak/depth-estimator:latest
+```
+Then open http://127.0.0.1:8000 in browser, click 'Try it out' next to `/predict`, upload an image and get its depth map.
+Runs on CPU. Works with outdoor images only.
 
 ## Installation
 
@@ -139,6 +147,26 @@ wget https://github.com/dmalynyak/depth-estimator-pytorch/releases/download/nyu_
 # outdoor model weights:
 wget https://github.com/dmalynyak/depth-estimator-pytorch/releases/download/kitti_weights/kitti.pt -O weights/kitti.pt
 ```
+
+## Usage
+**Inference:**
+```bash
+# Indoor: 
+python -m indoor_inference --device cuda --file_path 'your_file_path' --model_path weights/nyu.pt
+# Outdoor: 
+python -m outdoor_inference --device cuda --file_path 'your_file_path' --model_path weights/kitti.pt
+```
+
+**Train:**
+```bash
+# Indoor:
+python -m src.indoor_train --device cuda --chkpt_path your_path/best.pt --log_path your_path/metrics.csv
+# to see live graphics of training run:
+tensorboard --logdir="your_log_path"
+# Outdoor:
+python -m src.outdoor_train --device cuda --chkpt_path your_path/best.pt --log_path your_path/metrics.csv
+```
+
 
 ## Datasets
 **NYU** indoor dataset with ~750 train images with ground truth depths.  
@@ -180,25 +208,6 @@ data/kitti/2011_09_26/
 Train/val/test split is made automatically on start of training loop.
 
 
-
-## Usage
-**Inference:**
-```bash
-# Indoor: 
-python -m indoor_inference --device cuda --file_path 'your_file_path' --model_path weights/nyu.pt
-# Outdoor: 
-python -m outdoor_inference --device cuda --file_path 'your_file_path' --model_path weights/kitti.pt
-```
-
-**Train:**
-```bash
-# Indoor:
-python -m src.indoor_train --device cuda --chkpt_path your_path/best.pt --log_path your_path/metrics.csv
-# to see live graphics of training run:
-tensorboard --logdir="your_log_path"
-# Outdoor:
-python -m src.outdoor_train --device cuda --chkpt_path your_path/best.pt --log_path your_path/metrics.csv
-```
 ## Structure
 ```text
 
