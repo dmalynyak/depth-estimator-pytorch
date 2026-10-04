@@ -93,7 +93,8 @@ Networks see augmented frames, the loss compares clean ones.
  - **Photometric loss** -  0.85 · SSIM + 0.15 · L1 between the warped and the real frame, computed on 4 decoder scales, plus edge-aware smoothness.
  - **TensorBoard and CSV logging** - live training graphs, metrics after every epoch, the best checkpoint is saved by AbsRel.
  - **Automasking** - pixels that don't change between frames (static camera, objects moving with the car) are ignored.
-
+ - **API** - a FastAPI server: upload an image, get the depth map back. See 'Try it with Docker' section below.
+- **Docker** - CPU outdoor image inference processing. Uses API above. See 'Try it with Docker' section below.
 
 ## Limitations
  - **Unknown scale** - a single camera can't tell a small close scene from a big far one, so outdoor model predicts depth only up to a scale factor. Metrics use median scaling.
@@ -212,8 +213,13 @@ Train/val/test split is made automatically on start of training loop.
 ```text
 
 ├── assets/ # demoes
+├── requirements.txt
 ├── indoor_inference.py
 ├── outdoor_inference.py
+├── api.py
+├── requirements-api.txt
+├── Dockerfile
+├── .dockerignore
 │
 │
 ├── scripts
